@@ -1,0 +1,21 @@
+d1 $ stack [
+  sound "bd:15*4" # gain "0.6",
+  sound "~ sn:3 ~ sn:3" # gain "0.7"
+  -- sound "hc:0*8" # gain "0.1"
+  -- sound "oc:8*4" # gain "0.7"
+] # gain "0.5"
+
+d1
+  $ stutWith 2 (0.125*3) (stutWith 16 (0.0625/2) (|* gain 0.95) . (|* hpf 1.1))
+  $ s "~ bd:15"
+  # hpf 40
+  # lpf 1000
+
+d1 
+  $ note "c5"
+  # s "bass"
+  + note "{0 3 5 7 10}%8"
+
+
+-- d2 $ n "~ 1 ~ 1 ~ 1 ~ 1" # sound "cr"
+-- # gain "0.5"
