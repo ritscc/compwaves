@@ -24,10 +24,10 @@ fn main() {
 
 fn init_scenes() -> Scenes {
     let mut scenes = Scenes::new();
-    scenes.add_scene(SceneTrigger::SoundName(String::from("bd")), Kick::new());
-    scenes.add_scene(SceneTrigger::SoundName(String::from("hc")), Hat::new());
-    scenes.add_scene(SceneTrigger::SoundName(String::from("sn")), Snare::new());
-    scenes.add_scene(SceneTrigger::KeyInput(Key::S), Snare::new());
+    scenes.add_scene("bd", Kick::new());
+    scenes.add_scene("hc", Hat::new());
+    scenes.add_scene("sn", Snare::new());
+    scenes.add_scene(Key::S, Snare::new());
 
     scenes.stop_all();
     scenes

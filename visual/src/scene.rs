@@ -16,6 +16,18 @@ pub enum SceneTrigger {
     SoundName(String),
 }
 
+impl From<&str> for SceneTrigger {
+    fn from(value: &str) -> Self {
+        Self::SoundName(value.to_owned())
+    }
+}
+
+impl From<Key> for SceneTrigger {
+    fn from(value: Key) -> Self {
+        Self::KeyInput(value)
+    }
+}
+
 #[allow(unused)]
 pub trait Scene {
     #[cfg(debug_assertions)]
@@ -44,11 +56,11 @@ impl Scenes {
         Scenes(HashMap::new())
     }
 
-    pub fn add_scene<T>(&mut self, trigger: SceneTrigger, scene: T)
+    pub fn add_scene<T>(&mut self, trigger: impl Into<SceneTrigger>, scene: T)
     where
         T: Scene + 'static,
     {
-        self.0.insert(trigger, Box::new(scene));
+        self.0.insert(trigger.into(), Box::new(scene));
     }
 
     pub fn start_all(&mut self) {
