@@ -1,10 +1,16 @@
+use std::env;
+
 use super::Scene;
 use crate::Model;
+#[cfg(debug_assertions)]
+use crate::play_sound;
 use nannou::prelude::*;
+use rodio::OutputStreamHandle;
 
 pub struct Snare {
     is_active: bool,
     progress: f64,
+    key_counter: u32,
 }
 
 impl Snare {
@@ -12,6 +18,7 @@ impl Snare {
         Snare {
             is_active: false,
             progress: 0.0,
+            key_counter: 0,
         }
     }
 }
@@ -46,5 +53,24 @@ impl Scene for Snare {
 
         let win_rect = app.window_rect();
         draw.ellipse().xy(win_rect.xy()).radius(100.).color(WHITE);
+    }
+
+    #[cfg(debug_assertions)]
+    fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {
+        if self.key_counter == 0 {
+            play_sound(
+                audio_handle,
+                format!("{}/sn/STATASA.wav", env::var("DIRT_SAMPLES_PATH").unwrap()),
+                0.05,
+            );
+            self.invoke();
+        }
+
+        self.key_counter += 1;
+    }
+
+    #[cfg(debug_assertions)]
+    fn key_released(&mut self, _audio_handle: &OutputStreamHandle) {
+        self.key_counter = 0;
     }
 }

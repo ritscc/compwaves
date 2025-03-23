@@ -34,7 +34,7 @@ impl Scene for Kick {
         let delta_seconds = update.since_last.secs();
         self.progress += delta_seconds;
 
-        if self.progress > 0.5 {
+        if self.progress > 0.1 {
             self.stop();
         }
     }

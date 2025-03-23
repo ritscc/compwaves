@@ -6,3 +6,6 @@ edition = "2024"
 [dependencies]
 nannou = "0.19.0"
 rosc = "0.11.3"
+rodio = { version = "0.20", features = ["default"] }
+nannou_audio = "0.19.0"
+dotenvy = "0.15.7"

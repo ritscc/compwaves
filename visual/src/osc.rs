@@ -6,7 +6,7 @@ use std::{
     thread,
 };
 
-use crate::model::Model;
+use crate::{model::Model, scene::SceneTrigger};
 
 type OscProps = HashMap<String, OscType>;
 
@@ -95,7 +95,11 @@ impl Model {
         let osc_properties = Osc::parse_properties(&msg.args);
 
         if let Some(OscType::String(t)) = osc_properties.get("s") {
-            if let Some(scene) = self.scenes.0.get_mut(t) {
+            if let Some(scene) = self
+                .scenes
+                .0
+                .get_mut(&SceneTrigger::SoundName(t.to_owned()))
+            {
                 scene.invoke();
             }
         }
