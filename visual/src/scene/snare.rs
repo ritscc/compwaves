@@ -1,11 +1,10 @@
-use std::env;
-
 use super::Scene;
 use crate::Model;
 #[cfg(debug_assertions)]
 use crate::play_sound;
 use nannou::prelude::*;
 use rodio::OutputStreamHandle;
+use std::env;
 
 pub struct Snare {
     is_active: bool,
