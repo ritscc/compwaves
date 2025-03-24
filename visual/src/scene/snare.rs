@@ -4,7 +4,6 @@ use crate::Model;
 use crate::play_sound;
 use nannou::prelude::*;
 use rodio::OutputStreamHandle;
-use std::env;
 
 pub struct Snare {
     is_active: bool,
@@ -56,12 +55,16 @@ impl Scene for Snare {
 
     #[cfg(debug_assertions)]
     fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {
+        use std::path::Path;
+
         if self.key_counter == 0 {
-            play_sound(
-                audio_handle,
-                format!("{}/sn/STATASA.wav", env::var("DIRT_SAMPLES_PATH").unwrap()),
-                0.05,
-            );
+            let audio_path = Path::new("superdirt-samples")
+                .join("sn")
+                .join("STATASA.wav");
+
+            if let Err(e) = play_sound(audio_handle, audio_path, 0.05) {
+                eprintln!("{e}");
+            }
             self.invoke();
         }
 

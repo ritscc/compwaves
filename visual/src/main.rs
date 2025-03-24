@@ -2,6 +2,7 @@ mod model;
 mod osc;
 mod scene;
 
+use color_eyre::Result;
 use model::Model;
 use nannou::color::BLACK;
 use nannou::event::WindowEvent::{KeyPressed, KeyReleased};
@@ -12,14 +13,17 @@ use scene::kick::Kick;
 use scene::snare::Snare;
 use scene::{SceneTrigger, Scenes};
 
-fn main() {
+fn main() -> Result<()> {
     dotenvy::dotenv().unwrap();
+    color_eyre::install()?;
 
     nannou::app(Model::new)
         .event(event)
         .update(update)
         .view(draw)
         .run();
+
+    Ok(())
 }
 
 fn init_scenes() -> Scenes {
@@ -82,15 +86,22 @@ fn event(_app: &App, model: &mut Model, event: Event) {
 #[cfg(debug_assertions)]
 pub fn play_sound(
     audio_handle: &rodio::OutputStreamHandle,
-    file: impl AsRef<std::path::Path>,
+    path: impl AsRef<std::path::Path>,
     volume: f32,
-) {
+) -> Result<()> {
     use rodio::{Decoder, Source as _};
-    use std::{fs::File, io::BufReader};
+    use std::{fs::File, io::BufReader, path::PathBuf};
 
-    let file = BufReader::new(File::open(file).unwrap());
-    let source = Decoder::new(file).unwrap();
+    let mut cargo_manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    cargo_manifest_dir.pop();
+
+    let file_path = cargo_manifest_dir.join("samples").join(path);
+
+    let file = BufReader::new(File::open(file_path)?);
+    let source = Decoder::new_mp3(file)?;
     let source = source.amplify(volume);
 
-    audio_handle.play_raw(source.convert_samples()).unwrap();
+    audio_handle.play_raw(source.convert_samples())?;
+
+    Ok(())
 }
