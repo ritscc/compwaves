@@ -14,7 +14,6 @@ use scene::snare::Snare;
 use scene::{SceneTrigger, Scenes};
 
 fn main() -> Result<()> {
-    dotenvy::dotenv().unwrap();
     color_eyre::install()?;
 
     nannou::app(Model::new)
@@ -98,7 +97,7 @@ pub fn play_sound(
     let file_path = cargo_manifest_dir.join("samples").join(path);
 
     let file = BufReader::new(File::open(file_path)?);
-    let source = Decoder::new_mp3(file)?;
+    let source = Decoder::new(file)?;
     let source = source.amplify(volume);
 
     audio_handle.play_raw(source.convert_samples())?;
