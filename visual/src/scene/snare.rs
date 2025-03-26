@@ -1,6 +1,5 @@
 use super::Scene;
 use crate::Model;
-#[cfg(debug_assertions)]
 use crate::play_sound;
 use nannou::prelude::*;
 use rodio::OutputStreamHandle;
@@ -53,7 +52,6 @@ impl Scene for Snare {
         draw.ellipse().xy(win_rect.xy()).radius(100.).color(WHITE);
     }
 
-    #[cfg(debug_assertions)]
     fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {
         use std::path::Path;
 
@@ -71,7 +69,6 @@ impl Scene for Snare {
         self.key_counter += 1;
     }
 
-    #[cfg(debug_assertions)]
     fn key_released(&mut self, _audio_handle: &OutputStreamHandle) {
         self.key_counter = 0;
     }

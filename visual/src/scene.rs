@@ -30,18 +30,8 @@ impl From<Key> for SceneTrigger {
 
 #[allow(unused)]
 pub trait Scene {
-    #[cfg(debug_assertions)]
     fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {}
-
-    #[cfg(debug_assertions)]
     fn key_released(&mut self, audio_handle: &OutputStreamHandle) {}
-
-    #[cfg(not(debug_assertions))]
-    fn key_pressed(&mut self) {}
-
-    #[cfg(not(debug_assertions))]
-    fn key_released(&mut self) {}
-
     fn invoke(&mut self);
     fn stop(&mut self);
     fn draw(&self, app: &App, model: &Model, draw: &Draw);

@@ -60,21 +60,13 @@ fn event(_app: &App, model: &mut Model, event: Event) {
             KeyPressed(key) => {
                 let scene = model.scenes.0.get_mut(&SceneTrigger::KeyInput(key));
                 if let Some(scene) = scene {
-                    #[cfg(debug_assertions)]
                     scene.key_pressed(&model.audio_handle);
-
-                    #[cfg(not(debug_assertions))]
-                    scene.key_pressed();
                 }
             }
             KeyReleased(key) => {
                 let scene = model.scenes.0.get_mut(&SceneTrigger::KeyInput(key));
                 if let Some(scene) = scene {
-                    #[cfg(debug_assertions)]
                     scene.key_released(&model.audio_handle);
-
-                    #[cfg(not(debug_assertions))]
-                    scene.key_released();
                 }
             }
             _ => {}
@@ -82,7 +74,6 @@ fn event(_app: &App, model: &mut Model, event: Event) {
     }
 }
 
-#[cfg(debug_assertions)]
 pub fn play_sound(
     audio_handle: &rodio::OutputStreamHandle,
     path: impl AsRef<std::path::Path>,
