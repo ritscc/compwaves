@@ -6,7 +6,7 @@ use std::{
     thread,
 };
 
-use crate::{model::Model, scene::SceneTrigger};
+use crate::scene::SceneManager;
 
 type OscProps = HashMap<String, OscType>;
 
@@ -79,46 +79,40 @@ impl Osc {
 
         properties
     }
-}
 
-impl Model {
-    pub fn handle_osc_freq(&mut self, msg: &OscMessage) {
+    pub fn handle_freq(&mut self, msg: &OscMessage, freqscope: &mut [i32; 1024]) {
         if let OscType::Blob(a) = &msg.args[0] {
-            self.freqscope
+            freqscope
                 .iter_mut()
                 .zip(a.iter().map(|&v| v as i32 - 160))
                 .for_each(|(dst, src)| *dst = src);
         }
     }
 
-    pub fn handle_osc_dirt(&mut self, msg: &OscMessage) {
+    pub fn handle_dirt(&mut self, msg: &OscMessage, scenes: &mut SceneManager) {
         let osc_properties = Osc::parse_properties(&msg.args);
 
         if let Some(OscType::String(t)) = osc_properties.get("s") {
-            if let Some(scene) = self
-                .scenes
-                .0
-                .get_mut(&SceneTrigger::SoundName(t.to_owned()))
-            {
-                scene.invoke();
+            if let Some(scene) = scenes.get_mut_by_sound(t) {
+                scene.instance.invoke();
             }
         }
     }
 
-    pub fn handle_osc(&mut self) {
-        if let Ok(packet) = self.osc.receiver.try_recv() {
+    pub fn handle_event(&mut self, freqscope: &mut [i32; 1024], scene_manager: &mut SceneManager) {
+        if let Ok(packet) = self.receiver.try_recv() {
             match packet {
                 OscPacket::Bundle(bundle) => {
                     if let OscPacket::Message(msg) = &bundle.content[0] {
                         if msg.addr == "/dirt/play" {
-                            self.handle_osc_dirt(msg);
+                            self.handle_dirt(msg, scene_manager);
                         }
                     }
                 }
 
                 OscPacket::Message(msg) => {
                     if msg.addr == "/freq" {
-                        self.handle_osc_freq(&msg);
+                        self.handle_freq(&msg, freqscope);
                     }
                 }
             };

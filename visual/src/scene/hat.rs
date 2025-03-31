@@ -1,22 +1,14 @@
-use super::Scene;
+use super::SceneInstance;
 use crate::Model;
 use nannou::prelude::*;
 
+#[derive(Default)]
 pub struct Hat {
     is_active: bool,
     progress: f64,
 }
 
-impl Hat {
-    pub fn new() -> Self {
-        Hat {
-            is_active: false,
-            progress: 0.0,
-        }
-    }
-}
-
-impl Scene for Hat {
+impl SceneInstance for Hat {
     fn invoke(&mut self) {
         self.is_active = true;
         self.progress = 0.;

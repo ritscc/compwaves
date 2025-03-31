@@ -1,10 +1,10 @@
 use nannou::App;
 use rodio::{OutputStream, OutputStreamHandle};
 
-use crate::{init_scenes, osc::Osc, scene::Scenes};
+use crate::{init_scene_builders, osc::Osc, scene::SceneManager};
 pub struct Model {
     pub osc: Osc,
-    pub scenes: Scenes,
+    pub scenes: SceneManager,
     pub freqscope: [i32; 1024],
     pub audio_handle: OutputStreamHandle,
     _audio_stream: OutputStream,
@@ -19,7 +19,13 @@ impl Model {
             .unwrap();
 
         let osc = Osc::listen("0.0.0.0:2020");
-        let scenes = init_scenes();
+
+        let scenes = init_scene_builders()
+            .into_iter()
+            .map(|s| s.build())
+            .collect();
+
+        let scenes = SceneManager::new(scenes);
 
         let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 

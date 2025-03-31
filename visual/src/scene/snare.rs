@@ -1,26 +1,24 @@
-use super::Scene;
+use super::SceneInstance;
 use crate::Model;
 use crate::play_sound;
 use nannou::prelude::*;
 use rodio::OutputStreamHandle;
+use serde::Deserialize;
 
+#[derive(Deserialize, Default)]
+struct Params {
+    size: f32,
+}
+
+#[derive(Default)]
 pub struct Snare {
     is_active: bool,
     progress: f64,
     key_counter: u32,
+    params: Params,
 }
 
-impl Snare {
-    pub fn new() -> Self {
-        Snare {
-            is_active: false,
-            progress: 0.0,
-            key_counter: 0,
-        }
-    }
-}
-
-impl Scene for Snare {
+impl SceneInstance for Snare {
     fn invoke(&mut self) {
         self.is_active = true;
     }
@@ -49,7 +47,10 @@ impl Scene for Snare {
         }
 
         let win_rect = app.window_rect();
-        draw.ellipse().xy(win_rect.xy()).radius(100.).color(WHITE);
+        draw.ellipse()
+            .xy(win_rect.xy())
+            .radius(self.params.size)
+            .color(WHITE);
     }
 
     fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {
@@ -71,5 +72,11 @@ impl Scene for Snare {
 
     fn key_released(&mut self, _audio_handle: &OutputStreamHandle) {
         self.key_counter = 0;
+    }
+
+    fn on_params_update(&mut self, data: crate::params::ParamsData) {
+        if let Ok(data) = data.get::<Params>() {
+            self.params.size = data.size;
+        }
     }
 }

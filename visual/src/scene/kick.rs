@@ -1,22 +1,14 @@
-use super::Scene;
+use super::SceneInstance;
 use crate::Model;
 use nannou::prelude::*;
 
+#[derive(Default)]
 pub struct Kick {
     is_active: bool,
     progress: f64,
 }
 
-impl Kick {
-    pub fn new() -> Self {
-        Kick {
-            is_active: false,
-            progress: 0.0,
-        }
-    }
-}
-
-impl Scene for Kick {
+impl SceneInstance for Kick {
     fn invoke(&mut self) {
         self.is_active = true;
     }

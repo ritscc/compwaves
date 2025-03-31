@@ -1,5 +1,6 @@
 mod model;
 mod osc;
+mod params;
 mod scene;
 
 use color_eyre::Result;
@@ -8,10 +9,21 @@ use nannou::color::BLACK;
 use nannou::event::WindowEvent::{KeyPressed, KeyReleased};
 use nannou::event::{Key, Update};
 use nannou::{App, Event, Frame};
+use scene::SceneBuilder;
 use scene::hat::Hat;
 use scene::kick::Kick;
 use scene::snare::Snare;
-use scene::{SceneTrigger, Scenes};
+
+fn init_scene_builders() -> Vec<SceneBuilder> {
+    vec![
+        SceneBuilder::new::<Kick>().sound("bd").key(Key::B),
+        SceneBuilder::new::<Snare>()
+            .sound("sn")
+            .key(Key::S)
+            .param_file("snare.toml"),
+        SceneBuilder::new::<Hat>().sound("hc").key(Key::H),
+    ]
+}
 
 fn main() -> Result<()> {
     color_eyre::install()?;
@@ -25,20 +37,11 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn init_scenes() -> Scenes {
-    let mut scenes = Scenes::new();
-    scenes.add_scene("bd", Kick::new());
-    scenes.add_scene("hc", Hat::new());
-    scenes.add_scene("sn", Snare::new());
-    scenes.add_scene(Key::S, Snare::new());
-
-    scenes.stop_all();
-    scenes
-}
-
 fn update(_app: &App, model: &mut Model, update: Update) {
     model.scenes.update_all(&update);
-    model.handle_osc();
+    model
+        .osc
+        .handle_event(&mut model.freqscope, &mut model.scenes);
 }
 
 fn draw(app: &App, model: &Model, frame: Frame) {
@@ -58,15 +61,13 @@ fn event(_app: &App, model: &mut Model, event: Event) {
     {
         match window_event {
             KeyPressed(key) => {
-                let scene = model.scenes.0.get_mut(&SceneTrigger::KeyInput(key));
-                if let Some(scene) = scene {
-                    scene.key_pressed(&model.audio_handle);
+                if let Some(scene) = model.scenes.get_mut_by_key(key) {
+                    scene.instance.key_pressed(&model.audio_handle);
                 }
             }
             KeyReleased(key) => {
-                let scene = model.scenes.0.get_mut(&SceneTrigger::KeyInput(key));
-                if let Some(scene) = scene {
-                    scene.key_released(&model.audio_handle);
+                if let Some(scene) = model.scenes.get_mut_by_key(key) {
+                    scene.instance.key_released(&model.audio_handle);
                 }
             }
             _ => {}
