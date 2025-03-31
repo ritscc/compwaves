@@ -34,7 +34,7 @@ pub fn start_watch_file(
     );
 
     thread::spawn(move || {
-        println!("{watcher:?}");
+        let _ = watcher;
 
         loop {
             match rx.recv() {
