@@ -94,7 +94,6 @@ impl AppBuilder {
         let (_stream, audio_handle) = OutputStream::try_default().unwrap();
 
         Model {
-            base_path: self.params_base_path.expect("please set the base_path"),
             osc,
             scene_manager,
             freqscope: [0; 1024],
