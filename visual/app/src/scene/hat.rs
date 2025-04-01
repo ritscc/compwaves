@@ -1,6 +1,6 @@
-use super::SceneInstance;
-use crate::Model;
-use nannou::prelude::*;
+use core::Model;
+use core::SceneInstance;
+use core::nannou::prelude::*;
 
 #[derive(Default)]
 pub struct Hat {

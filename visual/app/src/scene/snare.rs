@@ -1,8 +1,8 @@
-use super::SceneInstance;
-use crate::Model;
-use crate::play_sound;
-use nannou::prelude::*;
-use rodio::OutputStreamHandle;
+use core::Model;
+use core::OutputStreamHandle;
+use core::SceneInstance;
+use core::nannou::prelude::*;
+use core::play_sound;
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -61,9 +61,9 @@ impl SceneInstance for Snare {
                 .join("sn")
                 .join("STATASA.wav");
 
-            if let Err(e) = play_sound(audio_handle, audio_path, 0.05) {
-                eprintln!("{e}");
-            }
+            // if let Err(e) = play_sound(audio_handle, audio_path, 0.05) {
+            //     eprintln!("{e}");
+            // }
             self.invoke();
         }
 
@@ -74,7 +74,7 @@ impl SceneInstance for Snare {
         self.key_counter = 0;
     }
 
-    fn on_params_update(&mut self, data: crate::params::ParamsData) {
+    fn on_params_update(&mut self, data: core::ParamsData) {
         if let Ok(data) = data.get::<Params>() {
             self.params.size = data.size;
         }

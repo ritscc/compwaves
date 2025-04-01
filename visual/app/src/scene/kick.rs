@@ -1,6 +1,6 @@
-use super::SceneInstance;
-use crate::Model;
-use nannou::prelude::*;
+use core::Model;
+use core::SceneInstance;
+use core::nannou::prelude::*;
 
 #[derive(Default)]
 pub struct Kick {
@@ -38,7 +38,7 @@ impl SceneInstance for Kick {
 
         let points = (0..50).map(|i| {
             let x = i as f32;
-            let point = pt2(x - 20., x.sin() * model.freqscope[i] as f32 / 4.) * 20.0;
+            let point = pt2(x - 20., x.sin() * model.freqscope()[i] as f32 / 4.) * 20.0;
             (point, WHITE)
         });
         draw.polyline().weight(3.0).points_colored(points);

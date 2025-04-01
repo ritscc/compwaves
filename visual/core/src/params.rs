@@ -17,7 +17,7 @@ impl ParamsData {
     }
 }
 
-pub fn start_watch_file(
+pub(crate) fn start_watch_file(
     file_path: impl AsRef<OsStr>,
     update_event_tx: mpsc::Sender<notify::Event>,
 ) {
@@ -34,15 +34,13 @@ pub fn start_watch_file(
     );
 
     thread::spawn(move || {
-        let _ = watcher;
+        // Stay watcher alive by moving it into thread
+        let _watcher = watcher;
 
         loop {
-            match rx.recv() {
-                Ok(event) => match event {
-                    Ok(event) => update_event_tx.send(event).unwrap(),
-                    Err(e) => println!("event error: {:?}", e),
-                },
-                Err(e) => println!("watch error: {:?}", e),
+            match rx.recv().unwrap() {
+                Ok(event) => update_event_tx.send(event).unwrap(),
+                Err(e) => println!("event error: {:?}", e),
             }
         }
     });

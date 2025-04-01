@@ -1,3 +1,4 @@
+use crate::scene::SceneManager;
 use rosc::{OscMessage, OscPacket, OscType};
 use std::{
     collections::HashMap,
@@ -6,11 +7,9 @@ use std::{
     thread,
 };
 
-use crate::scene::SceneManager;
-
 type OscProps = HashMap<String, OscType>;
 
-pub struct Osc {
+pub(crate) struct Osc {
     pub receiver: Receiver<OscPacket>,
 }
 
@@ -47,7 +46,7 @@ impl Osc {
         }
     }
 
-    pub fn parse_properties(args: &[OscType]) -> OscProps {
+    pub(crate) fn parse_properties(args: &[OscType]) -> OscProps {
         let mut properties = HashMap::new();
         let mut key = String::new();
 
@@ -80,7 +79,7 @@ impl Osc {
         properties
     }
 
-    pub fn handle_freq(&mut self, msg: &OscMessage, freqscope: &mut [i32; 1024]) {
+    pub(crate) fn handle_freq(&mut self, msg: &OscMessage, freqscope: &mut [i32; 1024]) {
         if let OscType::Blob(a) = &msg.args[0] {
             freqscope
                 .iter_mut()
@@ -89,7 +88,7 @@ impl Osc {
         }
     }
 
-    pub fn handle_dirt(&mut self, msg: &OscMessage, scenes: &mut SceneManager) {
+    pub(crate) fn handle_dirt(&mut self, msg: &OscMessage, scenes: &mut SceneManager) {
         let osc_properties = Osc::parse_properties(&msg.args);
 
         if let Some(OscType::String(t)) = osc_properties.get("s") {
@@ -99,7 +98,11 @@ impl Osc {
         }
     }
 
-    pub fn handle_event(&mut self, freqscope: &mut [i32; 1024], scene_manager: &mut SceneManager) {
+    pub(crate) fn handle_event(
+        &mut self,
+        freqscope: &mut [i32; 1024],
+        scene_manager: &mut SceneManager,
+    ) {
         if let Ok(packet) = self.receiver.try_recv() {
             match packet {
                 OscPacket::Bundle(bundle) => {
