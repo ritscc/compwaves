@@ -1,7 +1,7 @@
 mod scenes;
 
 use core::App;
-use core::AppBuilder;
+use core::AppConfig;
 use core::nannou::event::Key;
 use core::scene::SceneBuilder;
 use scenes::hat::Hat;
@@ -27,11 +27,7 @@ fn scenes() -> Vec<SceneBuilder> {
     ]
 }
 
-fn main() {
-    App.run(app_builder);
-}
-
-fn app_builder(nannou_app: &core::NannouApp) -> core::Model {
+fn config(nannou_app: &core::NannouApp) -> core::Model {
     let cargo_manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
 
     let params_base_path = cargo_manifest_dir.join("params");
@@ -42,9 +38,13 @@ fn app_builder(nannou_app: &core::NannouApp) -> core::Model {
         .unwrap()
         .join("samples");
 
-    AppBuilder::new()
+    AppConfig::new()
         .params_base_path(params_base_path)
         .audio_base_path(audio_base_path)
         .scenes(scenes())
         .build(nannou_app)
+}
+
+fn main() {
+    App.run(config);
 }

@@ -1,4 +1,4 @@
-pub use app::{App, AppBuilder};
+pub use app::{App, AppConfig};
 pub use model::Model;
 pub use nannou::{self, App as NannouApp};
 pub use params::ParamsData;

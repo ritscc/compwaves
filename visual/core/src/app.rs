@@ -28,15 +28,15 @@ impl App {
 }
 
 #[derive(Default)]
-pub struct AppBuilder {
+pub struct AppConfig {
     params_base_path: Option<PathBuf>,
     audio_base_path: Option<PathBuf>,
     scenes: Vec<SceneBuilder>,
 }
 
-impl AppBuilder {
+impl AppConfig {
     pub fn new() -> Self {
-        AppBuilder::default()
+        AppConfig::default()
     }
 
     pub fn params_base_path(mut self, base_path: impl AsRef<Path>) -> Self {
