@@ -1,8 +1,9 @@
 use core::Model;
-use core::OutputStreamHandle;
-use core::SceneInstance;
 use core::nannou::prelude::*;
-use core::play_sound;
+use core::scene::Scene;
+use core::sound::AudioFile;
+use core::sound::OutputStreamHandle;
+use core::sound::SoundPlayable as _;
 use serde::Deserialize;
 
 #[derive(Deserialize, Default)]
@@ -18,7 +19,7 @@ pub struct Snare {
     params: Params,
 }
 
-impl SceneInstance for Snare {
+impl Scene for Snare {
     fn invoke(&mut self) {
         self.is_active = true;
     }
@@ -53,24 +54,16 @@ impl SceneInstance for Snare {
             .color(WHITE);
     }
 
-    fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {
-        use std::path::Path;
-
+    fn key_pressed(&mut self, audio: Option<(&AudioFile, &OutputStreamHandle)>) {
         if self.key_counter == 0 {
-            let audio_path = Path::new("superdirt-samples")
-                .join("sn")
-                .join("STATASA.wav");
-
-            // if let Err(e) = play_sound(audio_handle, audio_path, 0.05) {
-            //     eprintln!("{e}");
-            // }
+            audio.play().unwrap();
             self.invoke();
         }
 
         self.key_counter += 1;
     }
 
-    fn key_released(&mut self, _audio_handle: &OutputStreamHandle) {
+    fn key_released(&mut self, _audio: Option<(&AudioFile, &OutputStreamHandle)>) {
         self.key_counter = 0;
     }
 

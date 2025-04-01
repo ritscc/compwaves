@@ -4,8 +4,11 @@ use std::{
 };
 
 use crate::{
-    Model, ParamsData, SceneBuilder, draw, event, osc::Osc, params::start_watch_file,
-    scene::SceneManager, update,
+    Model, ParamsData, draw, event,
+    osc::Osc,
+    params::start_watch_file,
+    scene::{SceneBuilder, SceneManager},
+    update,
 };
 use nannou::App as NannouApp;
 use rodio::OutputStream;
@@ -26,7 +29,8 @@ impl App {
 
 #[derive(Default)]
 pub struct AppBuilder {
-    base_path: Option<PathBuf>,
+    params_base_path: Option<PathBuf>,
+    audio_base_path: Option<PathBuf>,
     scenes: Vec<SceneBuilder>,
 }
 
@@ -35,8 +39,13 @@ impl AppBuilder {
         AppBuilder::default()
     }
 
-    pub fn base_path(mut self, base_path: impl AsRef<Path>) -> Self {
-        self.base_path = Some(base_path.as_ref().into());
+    pub fn params_base_path(mut self, base_path: impl AsRef<Path>) -> Self {
+        self.params_base_path = Some(base_path.as_ref().into());
+        self
+    }
+
+    pub fn audio_base_path(mut self, base_path: impl AsRef<Path>) -> Self {
+        self.audio_base_path = Some(base_path.as_ref().into());
         self
     }
 
@@ -57,11 +66,13 @@ impl AppBuilder {
         let scenes = self
             .scenes
             .into_iter()
-            .map(|mut scene| {
-                if let (Some(params_file_path), Some(base_path)) =
-                    (&scene.params_file_path, &self.base_path)
-                {
-                    let full_params_path = base_path.join("params").join(params_file_path);
+            .filter_map(|mut scene| {
+                if let (Some(params_file_path), Some(params_base_path), Some(audio_base_path)) = (
+                    &scene.params_file_path,
+                    &self.params_base_path,
+                    &self.audio_base_path,
+                ) {
+                    let full_params_path = params_base_path.join(params_file_path);
 
                     let (tx, rx) = mpsc::channel();
                     start_watch_file(&full_params_path, tx);
@@ -71,22 +82,24 @@ impl AppBuilder {
                         .instance
                         .on_params_update(ParamsData::new(file_content));
                     scene.params_update_event_rx = Some(rx);
+                    Some(scene.build(audio_base_path))
+                } else {
+                    None
                 }
-                scene.build()
             })
             .collect();
 
         let scene_manager = SceneManager::new(scenes);
 
-        let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+        let (_stream, audio_handle) = OutputStream::try_default().unwrap();
 
         Model {
-            base_path: self.base_path.expect("please set the base_path"),
+            base_path: self.params_base_path.expect("please set the base_path"),
             osc,
             scene_manager,
             freqscope: [0; 1024],
             _audio_stream: _stream,
-            audio_handle: stream_handle,
+            audio_handle,
         }
     }
 }

@@ -1,4 +1,4 @@
-use crate::scene::SceneManager;
+use crate::{scene::SceneManager, sound::DirtSound};
 use rosc::{OscMessage, OscPacket, OscType};
 use std::{
     collections::HashMap,
@@ -92,7 +92,7 @@ impl Osc {
         let osc_properties = Osc::parse_properties(&msg.args);
 
         if let Some(OscType::String(t)) = osc_properties.get("s") {
-            if let Some(scene) = scenes.get_mut_by_sound(t) {
+            if let Some(scene) = scenes.get_mut_by_dirt_sound(&DirtSound::new(t)) {
                 scene.instance.invoke();
             }
         }

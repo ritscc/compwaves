@@ -1,6 +1,6 @@
 use core::Model;
-use core::SceneInstance;
 use core::nannou::prelude::*;
+use core::scene::Scene;
 
 #[derive(Default)]
 pub struct Hat {
@@ -8,7 +8,7 @@ pub struct Hat {
     progress: f64,
 }
 
-impl SceneInstance for Hat {
+impl Scene for Hat {
     fn invoke(&mut self) {
         self.is_active = true;
         self.progress = 0.;

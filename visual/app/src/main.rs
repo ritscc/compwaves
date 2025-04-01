@@ -1,21 +1,29 @@
-mod scene;
+mod scenes;
 
 use core::App;
 use core::AppBuilder;
-use core::SceneBuilder;
 use core::nannou::event::Key;
-use scene::hat::Hat;
-use scene::kick::Kick;
-use scene::snare::Snare;
+use core::scene::SceneBuilder;
+use scenes::hat::Hat;
+use scenes::kick::Kick;
+use scenes::snare::Snare;
+use std::path::Path;
+use std::path::PathBuf;
 
 fn scenes() -> Vec<SceneBuilder> {
     vec![
-        SceneBuilder::new::<Kick>().sound("bd").key(Key::B),
+        SceneBuilder::new::<Kick>().dirt_sound("bd").key(Key::B),
         SceneBuilder::new::<Snare>()
-            .sound("sn")
+            .dirt_sound("sn")
             .key(Key::S)
+            .audio_file(
+                Path::new("superdirt-samples")
+                    .join("sn")
+                    .join("STATASA.wav"),
+            )
+            .audio_volume(0.05)
             .param_file("snare.toml"),
-        SceneBuilder::new::<Hat>().sound("hc").key(Key::H),
+        SceneBuilder::new::<Hat>().dirt_sound("hc").key(Key::H),
     ]
 }
 
@@ -24,8 +32,19 @@ fn main() {
 }
 
 fn app_builder(nannou_app: &core::NannouApp) -> core::Model {
+    let cargo_manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+
+    let params_base_path = cargo_manifest_dir.join("params");
+    let audio_base_path = PathBuf::from(&cargo_manifest_dir)
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join("samples");
+
     AppBuilder::new()
-        .base_path(env!("CARGO_MANIFEST_DIR"))
+        .params_base_path(params_base_path)
+        .audio_base_path(audio_base_path)
         .scenes(scenes())
         .build(nannou_app)
 }

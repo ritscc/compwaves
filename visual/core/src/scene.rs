@@ -1,4 +1,8 @@
-use crate::{Model, params::ParamsData};
+use crate::{
+    Model,
+    params::ParamsData,
+    sound::{AudioFile, DirtSound},
+};
 use nannou::{
     App, Draw,
     event::{Key, Update},
@@ -10,9 +14,9 @@ use std::{
 };
 
 #[allow(unused)]
-pub trait SceneInstance {
-    fn key_pressed(&mut self, audio_handle: &OutputStreamHandle) {}
-    fn key_released(&mut self, audio_handle: &OutputStreamHandle) {}
+pub trait Scene {
+    fn key_pressed(&mut self, audio: Option<(&AudioFile, &OutputStreamHandle)>) {}
+    fn key_released(&mut self, audio: Option<(&AudioFile, &OutputStreamHandle)>) {}
     fn invoke(&mut self);
     fn stop(&mut self);
     fn draw(&self, app: &App, model: &Model, draw: &Draw);
@@ -21,15 +25,15 @@ pub trait SceneInstance {
 }
 
 #[derive(Default)]
-pub(crate) struct SceneManager(Vec<Scene>);
+pub(crate) struct SceneManager(Vec<SceneInstance>);
 
 #[allow(unused)]
 impl SceneManager {
-    pub(crate) fn new(scenes: Vec<Scene>) -> Self {
+    pub(crate) fn new(scenes: Vec<SceneInstance>) -> Self {
         SceneManager(scenes)
     }
 
-    pub(crate) fn add_scene(&mut self, scene: Scene) {
+    pub(crate) fn add_scene(&mut self, scene: SceneInstance) {
         self.0.push(scene);
     }
 
@@ -58,31 +62,35 @@ impl SceneManager {
         }
     }
 
-    pub(crate) fn get_by_key(&self, key: Key) -> Option<&Scene> {
+    pub(crate) fn get_by_key(&self, key: Key) -> Option<&SceneInstance> {
         self.0.iter().find(|v| v.key.contains(&key))
     }
 
-    pub(crate) fn get_mut_by_key(&mut self, key: Key) -> Option<&mut Scene> {
+    pub(crate) fn get_mut_by_key(&mut self, key: Key) -> Option<&mut SceneInstance> {
         self.0.iter_mut().find(|v| v.key.contains(&key))
     }
 
-    pub(crate) fn get_by_sound(&self, sound: &str) -> Option<&Scene> {
-        self.0.iter().find(|v| v.sound.contains(&sound))
+    pub(crate) fn get_by_dirt_sound(&self, sound: &DirtSound) -> Option<&SceneInstance> {
+        self.0.iter().find(|v| v.dirt_sounds.contains(sound))
     }
 
-    pub(crate) fn get_mut_by_sound(&mut self, sound: &str) -> Option<&mut Scene> {
-        self.0.iter_mut().find(|v| v.sound.contains(&sound))
+    pub(crate) fn get_mut_by_dirt_sound(
+        &mut self,
+        sound: &DirtSound,
+    ) -> Option<&mut SceneInstance> {
+        self.0.iter_mut().find(|v| v.dirt_sounds.contains(sound))
     }
 }
 
-pub struct Scene {
-    pub(crate) instance: Box<dyn SceneInstance>,
+pub struct SceneInstance {
+    pub(crate) instance: Box<dyn Scene>,
     pub(crate) key: Vec<Key>,
-    pub(crate) sound: Vec<&'static str>,
+    pub(crate) dirt_sounds: Vec<DirtSound>,
+    pub(crate) audio_file: Option<AudioFile>,
     params_update_event_rx: Option<mpsc::Receiver<notify::Event>>,
 }
 
-impl Scene {
+impl SceneInstance {
     fn handle_params_update_event(&mut self) {
         if let Some(params_update_event_rx) = &self.params_update_event_rx {
             if let Ok(event) = params_update_event_rx.try_recv() {
@@ -98,31 +106,46 @@ impl Scene {
 }
 
 pub struct SceneBuilder {
-    pub(crate) instance: Box<dyn SceneInstance>,
+    pub(crate) instance: Box<dyn Scene>,
     pub(crate) params_file_path: Option<PathBuf>,
     pub(crate) params_update_event_rx: Option<mpsc::Receiver<notify::Event>>,
-    key: Vec<Key>,
-    sound: Vec<&'static str>,
+    keys: Vec<Key>,
+    dirt_sound_names: Vec<&'static str>,
+    audio_file_path: Option<PathBuf>,
+    audio_volume: Option<f32>,
 }
 
 impl SceneBuilder {
-    pub fn new<SI: SceneInstance + std::default::Default + 'static>() -> Self {
+    pub fn new<SI: Scene + std::default::Default + 'static>() -> Self {
         SceneBuilder {
             instance: Box::new(SI::default()),
-            key: Vec::new(),
-            sound: Vec::new(),
+            keys: Vec::new(),
             params_file_path: None,
             params_update_event_rx: None,
+            dirt_sound_names: Vec::new(),
+            audio_file_path: None,
+            audio_volume: None,
         }
     }
 
     pub fn key(mut self, key: Key) -> Self {
-        self.key.push(key);
+        self.keys.push(key);
         self
     }
 
-    pub fn sound(mut self, name: &'static str) -> Self {
-        self.sound.push(name);
+    pub fn dirt_sound(mut self, name: &'static str) -> Self {
+        self.dirt_sound_names.push(name);
+        self
+    }
+
+    pub fn audio_file(mut self, file_path: impl AsRef<Path>) -> Self {
+        self.audio_file_path = Some(file_path.as_ref().into());
+
+        self
+    }
+
+    pub fn audio_volume(mut self, volume: f32) -> Self {
+        self.audio_volume = Some(volume);
         self
     }
 
@@ -131,11 +154,28 @@ impl SceneBuilder {
         self
     }
 
-    pub fn build(self) -> Scene {
-        Scene {
+    pub fn build(self, audio_base_path: impl AsRef<Path>) -> SceneInstance {
+        let dirt_sounds = self
+            .dirt_sound_names
+            .into_iter()
+            .map(DirtSound::new)
+            .collect();
+
+        let audio_file = self.audio_file_path.map(|f| {
+            let mut audio_file = AudioFile::new(f);
+
+            if let Some(audio_volume) = self.audio_volume {
+                audio_file.volume = audio_volume;
+            }
+
+            audio_file.rebased_path(audio_base_path)
+        });
+
+        SceneInstance {
             instance: self.instance,
-            key: self.key,
-            sound: self.sound,
+            key: self.keys,
+            dirt_sounds,
+            audio_file,
             params_update_event_rx: self.params_update_event_rx,
         }
     }

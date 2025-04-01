@@ -1,6 +1,6 @@
 use core::Model;
-use core::SceneInstance;
 use core::nannou::prelude::*;
+use core::scene::Scene;
 
 #[derive(Default)]
 pub struct Kick {
@@ -8,7 +8,7 @@ pub struct Kick {
     progress: f64,
 }
 
-impl SceneInstance for Kick {
+impl Scene for Kick {
     fn invoke(&mut self) {
         self.is_active = true;
     }
