@@ -10,7 +10,6 @@ mod params;
 pub mod scene;
 pub mod sound;
 
-use color_eyre::Result;
 use nannou::color::BLACK;
 use nannou::event::Update;
 use nannou::event::WindowEvent::{KeyPressed, KeyReleased};
@@ -56,26 +55,4 @@ fn event(_app: &NannouApp, model: &mut Model, event: Event) {
             _ => {}
         }
     }
-}
-
-pub fn play_sound(
-    audio_handle: &rodio::OutputStreamHandle,
-    path: impl AsRef<std::path::Path>,
-    volume: f32,
-) -> Result<()> {
-    use rodio::{Decoder, Source as _};
-    use std::{fs::File, io::BufReader, path::PathBuf};
-
-    let mut cargo_manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    cargo_manifest_dir.pop();
-
-    let file_path = cargo_manifest_dir.join("samples").join(path);
-
-    let file = BufReader::new(File::open(file_path)?);
-    let source = Decoder::new(file)?;
-    let source = source.amplify(volume);
-
-    audio_handle.play_raw(source.convert_samples())?;
-
-    Ok(())
 }
